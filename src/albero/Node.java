@@ -16,7 +16,7 @@ import java.util.TreeMap;
 public class Node{
     protected int id;
     protected Object elemento=null;
-    protected Node father=null;
+    protected Node father;
     protected  ArrayList <Node> children=new ArrayList <Node>();
 
     public Node(Object elemento,int id) {
@@ -24,8 +24,16 @@ public class Node{
            
         this.elemento=elemento;
     }
+    public Node(Node n){
+        this.id=n.id;
+        this.elemento=n.elemento;
+        
+        for(Node h:n.children){
+            this.addFiglio(new Node(h));
+        }
+    }
     
-    public void addFiglio(Node nodoVicino){
+    public final void addFiglio(Node nodoVicino){
         nodoVicino.father=this;
         children.add(nodoVicino);
         
@@ -86,9 +94,7 @@ public ArrayList<Node> foglieN(){
     public ArrayList<Node> getChildren(){
         return this.children;
     }
-    public void addFigli(ArrayList<Node> figli){
-        this.children.addAll(figli);
-    }
+    
     public int getNodeDepth(){
         int k=0;
         if(father!=null){

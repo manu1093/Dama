@@ -220,7 +220,8 @@ public class Engine {
                             
                         }
                          Node p=new Node(null,0);
-                            p.addFigli(mp);
+                            for(Node n:mp)
+                                p.addFiglio(n);
                             ArrayList<Arbitro> mm=new ArrayList<>();
                              ArrayList<Node>a=this.trovaMangiataMassimaPerUnaPedina(t, p);
                             
@@ -625,21 +626,14 @@ public class Engine {
                
             return true;
         }
-        public Tavola calcolaMossa(Node root){
-            Node s=root.getChildren().get(0);
+        public Tavola calcolaMossa(Node root1){
+            Node s=root1.getChildren().get(0);
             int mp=10;
             boolean b=false;
-            for(int i=0;i<root.foglieN().size()-1;i++)
-                if(root.foglieN().get(i).getId()!=root.foglieN().get(i+1).getId())
-                    b=true;
-            Node max=new Node(null,-3000);
-            if(!b)
-                for(Node n:root.getChildren())
-                    if(n.getId()>max.getId()){
-                        max=n;
-                        s=n;
-                    }
-            while(mp>0&&b){
+            int k2=0;
+            Node root=new Node(root1);
+            
+            while(mp>0){
             int nMin=3000;
             for(Node n:root.foglieN()){//trova la mossa piu vantaggiosa per l'altro giocatore
                 
@@ -653,7 +647,8 @@ public class Engine {
                 }
             }
             int k=0;
-            
+            Node e=new Node(null,-3000);
+            b=false;
             for(Node n:root.getChildren())
                 if(n.getId()==-3000){
                     k++;
@@ -661,11 +656,24 @@ public class Engine {
                         h.setId(3000);
                 }
                 else
-                    //if(n.getId()>s.getId())
-                        s=n;//la mossa possibile e la meno peggio
+                    if(n.getId()>e.getId()){
+                        k2++;
+                        e=n;//la mossa possibile e la meno peggio
+                        b=true;
+                    }
+            if(b)
+                s=e;
             mp=root.getChildren().size()-k;
             
             
+            }
+            if(k2==0){//se non cambia mai mossa vuol dire che tutte le mosse portano a una situazione ugulae per il bianco quindi facciola migliore per me
+                Node max=new Node(null,-3000);           
+                for(Node n:root1.getChildren())
+                    if(n.getId()>max.getId()){
+                        max=n;
+                        s=n;
+                    }
             }
             return new GenericTavolaTree(s).getTavola();
         }

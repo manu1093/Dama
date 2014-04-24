@@ -318,43 +318,37 @@ public class GUI1 extends JFrame {
                                                     } catch (CellaInesistenteException ex) {                                               
                                                     }   
                                                         
-							System.out.println(c.getX()+" "+c.getY());
-							//System.out.println(c.getColor());
-							System.out.println(x+" "+y);
+							
+							
+							
 							int r=user.receivedinput(t, c);
-                                                        System.out.println(t.toString());
+                                                        if(r==2)
+                                                            try {
+                                                                aggiorna(t);
+                                                        } catch (                                                CellaInesistenteException | CellaVuotaException ex) {
+                                                            Logger.getLogger(GUI1.class.getName()).log(Level.SEVERE, null, ex);
+                                                        }
 							if(r==0){try {
                                                             //
                                                             aggiornaSM(user.getArbitro().getSource());
-                                                            } catch (CellaInesistenteException ex) {
-                                                                Logger.getLogger(GUI1.class.getName()).log(Level.SEVERE, null, ex);
-                                                            } catch (CellaVuotaException ex) {
+                                                            } catch (                                                    CellaInesistenteException | CellaVuotaException ex) {
                                                                 Logger.getLogger(GUI1.class.getName()).log(Level.SEVERE, null, ex);
                                                             }
 							}
-							while(r==2){
-                                                            
-                                                                r=user.receivedinput(t, c);
-                                                            
-                                                        }
+                                                        
+							
                                                 try {
                                                                
                                                               if(r==1){  
                                                                 t=pc.mossaPc(t);
                                                                 aggiorna(t);
                                                               }
-                                                  } catch (CellaInesistenteException ex) {
-                                                                Logger.getLogger(GUI1.class.getName()).log(Level.SEVERE, null, ex);
-                                                            } catch (CellaVuotaException ex) {
+                                                              
+                                                  } catch (                                            CellaInesistenteException | CellaVuotaException ex) {
                                                                 Logger.getLogger(GUI1.class.getName()).log(Level.SEVERE, null, ex);
                                                             }  
                                                 
-                                                                if(user.controlVictory(t))
-                                                                   System.out.println("Ha perso"+user.getTurnoToString());
-                                                        
-                                                       
-                                                    
-                                                                }
+                                                               
                                                                
                                                         }
 						}
@@ -363,6 +357,7 @@ public class GUI1 extends JFrame {
 							
 					}
 				}
+                        }
 			
                         
 							
