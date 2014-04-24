@@ -6,10 +6,16 @@
 
 package dama;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,10 +24,7 @@ public class Tavola implements Iterable<Cell>{//itera su celle piene + comodo
 	
 	private HashMap <Cell,Pedina> pedine;//stacca pedine da celle
         
-        public Tavola(String s)throws CellaNonVuotaException, MetodoUtilizzabileSoloPerDebug, CellaInesistenteException{//per debug
-           
-            if(!s.equals("debug"))
-                throw new MetodoUtilizzabileSoloPerDebug();
+        public Tavola(){   
             pedine=new HashMap();
                 }
         
@@ -41,9 +44,10 @@ public class Tavola implements Iterable<Cell>{//itera su celle piene + comodo
                 }
             }
         }
-	public Tavola() throws CellaNonVuotaException{
+        
+	public void inizio(){
 		
-                pedine=new HashMap<>();
+                
 		int y;
 		int f=0;
 		for (y=0;y<3;y++)//riempie le prime tre righe
@@ -281,6 +285,62 @@ public class Tavola implements Iterable<Cell>{//itera su celle piene + comodo
     @Override
     public Iterator<Cell> iterator() {
         return this.pedine.keySet().iterator();
+    }
+    public void load(File f){
+            try {
+                Scanner s=new Scanner(new FileReader(f));
+                while(s.hasNext()){
+                    String r=s.nextLine();
+                    int x=Integer.parseInt(r.split(":")[0]);
+                    int y=Integer.parseInt(r.split(":")[1]);
+                    Cell c=new Cell(x,y);
+                    char p=r.split(":")[2].charAt(0);
+                    if(p=='n')
+                        this.insertPedinaNera(c);
+                    if(p=='N'){
+                        this.insertPedinaNera(c);
+                        this.promuoviPedina(c);
+                    }
+                    if(p=='b')
+                        this.insertPedinaBianca(c);
+                    if(p=='B'){
+                        this.insertPedinaBianca(c);
+                        this.promuoviPedina(c);
+                    }
+                    
+                }
+            } catch (    FileNotFoundException | CellaInesistenteException | CellaNonVuotaException | CellaVuotaException ex) {
+                System.out.println("problema caricamento tavola");
+            }
+    }
+    public void save(File f) {
+        PrintWriter pw=null;
+        if(!f.exists())
+            try {
+                if(!f.createNewFile())
+                    System.out.println("il file non può essere creato");
+        } catch (IOException ex) {
+            
+        }
+                
+            
+                try {
+                pw = new PrintWriter(f);
+            }catch(FileNotFoundException e){
+                System.out.println("boh");
+            }
+            try {
+                for(Cell c:this){
+                    if(this.getPedina(c).isDamone())
+                        pw.println(c.getX()+":"+c.getY()+(":"+this.getPedina(c).getColor()).toUpperCase());
+                    else
+                        pw.println(c.getX()+":"+c.getY()+(":"+this.getPedina(c).getColor()));
+                }
+                 pw.close();
+            } catch (  CellaVuotaException ex) {
+                System.out.println("problema salvataggio tavola");
+            }
+           
     }
 }
 

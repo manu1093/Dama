@@ -22,14 +22,10 @@ public class Main {
 		javax.swing.SwingUtilities.invokeLater(new Runnable(){
 			public void run(){
 				GUI f=null;
-				try {
-					f = new GUI("dama",new Tavola());
-				} catch (CellaNonVuotaException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
 				
-				f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+					f = new GUI("dama");
+				
+				f.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 				
 				
 			}

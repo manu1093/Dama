@@ -70,13 +70,14 @@ public class GUI1 extends JFrame {
 	private ImageIcon dsb=new ImageIcon("dsb.jpg");
 	private ImageIcon dsn =new ImageIcon("dsn.jpg");
 	private ImageIcon db =new ImageIcon("db.jpg");
+        private ImageIcon cvs =new ImageIcon("cvs.jpg");
 	
 	
 	
-	public GUI1(String name,Tavola t) throws CellaInesistenteException, CellaVuotaException{		
+	public GUI1(String name){		
 		super(name);
 		
-		this.t=t;
+		this.t=new Tavola();
 		this.setLayout(new GridBagLayout());
 		this.a=new JLabel [8][8];
 		for(int y=0;y<a.length;y++){
@@ -111,7 +112,7 @@ public class GUI1 extends JFrame {
 			this.add(l,c);
 			
 			this.aggiorna(t);
-			this.setSize(400,400);
+			this.setSize(700,600);
 			this.setVisible(true);
                         JFrame f=new JFrame("comandi");
                         GridLayout gr=new GridLayout(3,4);
@@ -147,25 +148,29 @@ public class GUI1 extends JFrame {
 		}
 
     
-		private void aggiorna(Tavola t) throws CellaInesistenteException, CellaVuotaException{
+		private void aggiorna(Tavola t) {
                     for(int y=0;y<8;y++){
                         for(int x=0;x<8;x++){
-                            if(t.isEmpty(new Cell(x,y))){
-                                if(new Cell(x,y).isBianca())
-                                    a[y][x].setIcon(cvb);	
-                                if(new Cell(x,y).isNera())
-                                   a[y][x].setIcon(cvn);
-                            }else{
+                            try {
+                                if(t.isEmpty(new Cell(x,y))){
+                                    if(new Cell(x,y).isBianca())
+                                        a[y][x].setIcon(cvb);
+                                    if(new Cell(x,y).isNera())
+                                        a[y][x].setIcon(cvn);
+                                }else{
                                     
-                                if(t.containsPedinaBianca(new Cell(x,y)))
+                                    if(t.containsPedinaBianca(new Cell(x,y)))
                                         a[y][x].setIcon(pb);
-                                if(t.containsPedinaNera(new Cell(x,y)))
+                                    if(t.containsPedinaNera(new Cell(x,y)))
                                         a[y][x].setIcon(pn);
-                                if(t.containsDamoneBianco(new Cell(x,y)))
+                                    if(t.containsDamoneBianco(new Cell(x,y)))
                                         a[y][x].setIcon(db);
-                                if(t.containsDamoneNero(new Cell(x,y)))
+                                    if(t.containsDamoneNero(new Cell(x,y)))
                                         a[y][x].setIcon(dn);
 					
+                                }
+                            } catch (                    CellaInesistenteException | CellaVuotaException ex) {
+                                System.out.println("problema aggiornamento int. grafica");
                             }
                         }
                     }
@@ -178,7 +183,9 @@ public class GUI1 extends JFrame {
                                     a[c.getY()][c.getX()].setIcon(psb);
 				if(t.containsDamoneBianco(c))
                                     a[c.getY()][c.getX()].setIcon(dsb);
-			//}
+                        for(Cell p:user.getPossiblyMoves(t))
+                            a[p.getY()][p.getX()].setIcon(cvs);
+//}
 			/*if(e.turnoNero()){
 				if(t.containsPedinaNera(c))
 				a[c.getY()][c.getX()].setIcon(psn);
@@ -187,10 +194,11 @@ public class GUI1 extends JFrame {
 			}*/
 			
 		}
-                private void aggiornaTurno(){
+               private void aggiornaTurno(){
                     Engine a=new Engine(this.user);
                    
                    l.setText(a.getTurnoToString());
+           
                 }
 
 		
@@ -207,16 +215,12 @@ public class GUI1 extends JFrame {
 			
 			
 			@Override
-			public void mouseClicked(MouseEvent arg0) {
+			synchronized public void mouseClicked(MouseEvent arg0) {
                                 if(arg0.getSource()==pturno){
                                     
-                                    try {
+                                    
                                         aggiorna(t);
-                                    } catch (CellaInesistenteException ex) {
-                                        Logger.getLogger(GUI1.class.getName()).log(Level.SEVERE, null, ex);
-                                    } catch (CellaVuotaException ex) {
-                                        Logger.getLogger(GUI1.class.getName()).log(Level.SEVERE, null, ex);
-                                    }
+                                  
                                 }
 				if(ins&&!rim){//preparazione
                                     label2.setText("modalità inserimento");
@@ -266,13 +270,9 @@ public class GUI1 extends JFrame {
                                             }
                                         }
                                     }
-                                    try {    
+                                      
                                         aggiorna(t);
-                                    } catch (CellaInesistenteException ex) {
-                                        Logger.getLogger(GUI1.class.getName()).log(Level.SEVERE, null, ex);
-                                    } catch (CellaVuotaException ex) {
-                                        Logger.getLogger(GUI1.class.getName()).log(Level.SEVERE, null, ex);
-                                    }
+                                   
                                 }
                                 if(!ins&&rim){
                                     label2.setText("modalità rimozione");
@@ -298,13 +298,9 @@ public class GUI1 extends JFrame {
                                         }
                                         }
                                     }
-                                    try {
+                                   
                                         aggiorna(t);
-                                    } catch (CellaInesistenteException ex) {
-                                        Logger.getLogger(GUI1.class.getName()).log(Level.SEVERE, null, ex);
-                                    } catch (CellaVuotaException ex) {
-                                        Logger.getLogger(GUI1.class.getName()).log(Level.SEVERE, null, ex);
-                                    }
+                                    
                                 }
                                 if(!ins&&!rim){
                                     label2.setText("modalità gioco");
@@ -326,12 +322,11 @@ public class GUI1 extends JFrame {
 							
 							
 							int r=user.receivedinput(t, c);
+                                                        
                                                         if(r==2)
-                                                            try {
+                                                            
                                                                 aggiorna(t);
-                                                        } catch (                                                CellaInesistenteException | CellaVuotaException ex) {
-                                                            Logger.getLogger(GUI1.class.getName()).log(Level.SEVERE, null, ex);
-                                                        }
+                                                        
 							if(r==0){try {
                                                             //
                                                             aggiornaSM(user.getArbitro().getSource());
@@ -341,17 +336,17 @@ public class GUI1 extends JFrame {
 							}
                                                         
 							
-                                                try {
+                                               
                                                                
                                                               if(r==1){  
+                                                                  aggiorna(t);
+                                                                  
                                                                 t=pc.mossaPc(t);
                                                                 
                                                                 aggiorna(t);
                                                               }
                                                               
-                                                  } catch (                                            CellaInesistenteException | CellaVuotaException ex) {
-                                                                Logger.getLogger(GUI1.class.getName()).log(Level.SEVERE, null, ex);
-                                                            }  
+                                                 
                                                 
                                                                
                                                                
@@ -402,59 +397,32 @@ public class GUI1 extends JFrame {
                 JFileChooser fc=new JFileChooser();                
                 fc.setCurrentDirectory(new File(System.getProperty("user.dir")+"/salvataggi/"));
                 int ret=fc.showOpenDialog(load);
-                if(ret==JFileChooser.APPROVE_OPTION){
-                    try {
-                        Scanner s=new Scanner(new FileReader(fc.getSelectedFile()));
-                        while(s.hasNext()){
-                            String r=s.nextLine();
-                            int x=Integer.parseInt(r.split(":")[0]);
-                            int y=Integer.parseInt(r.split(":")[1]);
-                            Cell c=new Cell(x,y);
-                            char p=r.split(":")[2].charAt(0);
-                            if(p=='n')
-                                t.insertPedinaNera(c);
-                            if(p=='N'){
-                                t.insertPedinaNera(c);
-                                t.promuoviPedina(c);
-                            }
-                            if(p=='b')
-                                t.insertPedinaBianca(c);
-                            if(p=='B'){
-                                t.insertPedinaBianca(c);
-                                t.promuoviPedina(c);
-                            }
+                if(ret==JFileChooser.APPROVE_OPTION)
+                    
+                        t.load(fc.getSelectedFile());
+                       
                             
-                        }
+                       
                          aggiorna(t);
-                    } catch (CellaVuotaException|CellaInesistenteException|CellaNonVuotaException |FileNotFoundException ex) {  }
-                }
+                    
+                
                
             }
             if(arg0.getSource()==save){
                 JFileChooser fc=new JFileChooser();                
                 fc.setCurrentDirectory(new File(System.getProperty("user.dir")+"/salvataggi/"));
                 int ret=fc.showOpenDialog(load);
-                if(ret==JFileChooser.APPROVE_OPTION){
-                    try {
-                        PrintWriter pw=new PrintWriter(fc.getSelectedFile());
-                        for(Cell c:t){
-                            if(t.getPedina(c).isDamone())
-                                pw.println(c.getX()+":"+c.getY()+(":"+t.getPedina(c).getColor()).toUpperCase());
-                            else
-                                pw.println(c.getX()+":"+c.getY()+(":"+t.getPedina(c).getColor()));
-                        }
-                        pw.close();
-                    } catch (FileNotFoundException |CellaVuotaException e) {  } 
-                    }
+                if(ret==JFileChooser.APPROVE_OPTION)
+                    
+                        t.save(fc.getSelectedFile());
+                        
                 }
             if(arg0.getSource()==undo){
                 if(!user.historyIsEmpty()){
                     t=user.lastMove();
-                    try {
+                    
                         aggiorna(t);
-                    } catch (            CellaInesistenteException | CellaVuotaException ex) {
-                        Logger.getLogger(GUI1.class.getName()).log(Level.SEVERE, null, ex);
-                    }
+                   
                 }
             }
             }

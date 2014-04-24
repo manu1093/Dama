@@ -24,18 +24,9 @@ public class Debug {
 		javax.swing.SwingUtilities.invokeLater(new Runnable(){
 			public void run(){
 				GUI1 f=null;
-				try {
-					f = new GUI1("dama",new Tavola("debug"));
-				} catch (CellaNonVuotaException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (MetodoUtilizzabileSoloPerDebug ex) {
-                                Logger.getLogger(Debug.class.getName()).log(Level.SEVERE, null, ex);
-                            } catch (CellaInesistenteException ex) {
-                                Logger.getLogger(Debug.class.getName()).log(Level.SEVERE, null, ex);
-                            } catch (CellaVuotaException ex) {
-                                Logger.getLogger(Debug.class.getName()).log(Level.SEVERE, null, ex);
-                            }
+				
+					f = new GUI1("dama");
+				
 				
 				f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 				

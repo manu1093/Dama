@@ -152,7 +152,7 @@ public class Engine {
     //                    if(ar.controlStallo(t)&&!ar.controlVictory(t))
                       //      JOptionPane.showMessageDialog(null, "patta");
                         if(this.controlVictory(t))
-                            JOptionPane.showMessageDialog(null, this.getTurnoToString()+"hai vinto"); 
+                            JOptionPane.showMessageDialog(null, "hai vinto"); 
                         
                         //if(ar.controlVictory(t))
                          //gestione vittoria  
@@ -494,7 +494,7 @@ public class Engine {
             return m;
             
         }
-        private Node creaAlberoDelleTavole(Node root,int depth){
+        public Node creaAlberoDelleTavole(Node root,int depth){
             if(depth==0)//da mettere nelle chiamate per rendre il progeamma più veloce
                 return root;
             GenericTavolaTree g=new GenericTavolaTree(root);
@@ -628,7 +628,7 @@ public class Engine {
            
             for(Cell s:t)
                 try{
-                if(this.isMyPedina(t.getPedina(s)))
+                if(!this.isMyPedina(t.getPedina(s)))
                             return false;
                 }catch (CellaVuotaException e){}
                
@@ -682,13 +682,15 @@ public class Engine {
             }
             
             
-                Node max=new Node(null,-3000);           
-                for(Node n:mosseMigliori)
-                    if(n.getId()>max.getId()){
-                        max=n;
-                        s=n;
-                    }
-            
+            Node max=new Node(null,-3000);           
+            for(Node n:mosseMigliori)
+                if(n.getId()>max.getId()){
+                    max=n;
+                    s=n;
+                }
+            for(Node n:root1.getChildren())// cerca possibile mossa vincente
+                if(n.getChildren().isEmpty())
+                    s=n;
             return new GenericTavolaTree(s).getTavola();
         }
         public boolean historyIsEmpty(){
@@ -696,6 +698,25 @@ public class Engine {
         }
         public Tavola lastMove(){
             return this.history.pop();
+        }
+        public ArrayList<Cell> getPossiblyMoves(Tavola t){//mosse possibili avendo la sorgente
+            ArrayList <Cell> r=new ArrayList<>();
+            try{
+                for(Arbitro a:this.mangiabiliP(t))
+                    if(a.getSource().equals(ar.getSource()))
+                          r.add(a.getDestination());
+                
+            }catch(NullPointerException e){
+                for(Cell c:ar.getSource().celleAdiacenti()){
+                    Arbitro a=new Arbitro(Arbitro.turnoBianco);
+                    a.setSource(ar.getSource());
+                    a.setDestination(c);
+                    if(a.control(t))
+                        r.add(c);
+                }
+                    
+                }   
+            return r;
         }
 	}	
 				
