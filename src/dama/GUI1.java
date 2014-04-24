@@ -16,6 +16,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.PrintWriter;
 import java.util.Scanner;
+import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ButtonGroup;
@@ -43,6 +44,7 @@ public class GUI1 extends JFrame {
 	private JLabel l;
         private JLabel label2=new JLabel("modalità inserimento");
 	private Tavola t;
+       
 	private final JRadioButton bianco=new JRadioButton("Bianco");
         private JRadioButton nero=new JRadioButton("Nero");
         private JRadioButton pedina=new JRadioButton("pedina");
@@ -55,6 +57,7 @@ public class GUI1 extends JFrame {
         private ButtonGroup pezzo=new ButtonGroup();
         private ButtonGroup colore=new ButtonGroup();
         private JButton pturno=new JButton("nextTurn");
+        private JButton undo=new JButton("undo");
 	private Engine user=new Engine(0);
         private Engine pc=new Engine(1);
 	private ImageIcon cvn =new ImageIcon("cvn.jpg");
@@ -130,7 +133,7 @@ public class GUI1 extends JFrame {
                         f.add(label2);
                         f.add(rpedina);
                         f.add(this.pturno);
-                       // f.add(load);
+                        f.add(undo);                       // f.add(load);
                        // f.add(save);
                         pturno.addMouseListener(new GestoreEventi());
                         add.addMouseListener(new GestoreEventi ());
@@ -138,6 +141,7 @@ public class GUI1 extends JFrame {
                         rpedina.addMouseListener(new GestoreEventi());
                         load.addMouseListener(new GestoreEventi2());
                         save.addMouseListener(new GestoreEventi2());
+                        undo.addMouseListener(new GestoreEventi2());
                         f.setSize(400,200);
                         f.setVisible(true);
 		}
@@ -341,6 +345,7 @@ public class GUI1 extends JFrame {
                                                                
                                                               if(r==1){  
                                                                 t=pc.mossaPc(t);
+                                                                
                                                                 aggiorna(t);
                                                               }
                                                               
@@ -442,6 +447,16 @@ public class GUI1 extends JFrame {
                     } catch (FileNotFoundException |CellaVuotaException e) {  } 
                     }
                 }
+            if(arg0.getSource()==undo){
+                if(!user.historyIsEmpty()){
+                    t=user.lastMove();
+                    try {
+                        aggiorna(t);
+                    } catch (            CellaInesistenteException | CellaVuotaException ex) {
+                        Logger.getLogger(GUI1.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
             }
                 
         

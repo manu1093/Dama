@@ -12,6 +12,7 @@ import albero.GenericArbitroTree;
 import albero.GenericTavolaTree;
 import albero.Node;
 import java.util.ArrayList;
+import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -21,7 +22,7 @@ public class Engine {
 	private int turno;
         private static final int pedina=10;
         private static final int damone=30;
-        
+        private Stack <Tavola> history;
         /*
         private int user;//mapperemo in modo diverso la gui
 	*/
@@ -29,11 +30,14 @@ public class Engine {
             ar=new Arbitro(t);
             turno=t;
             mangiato=false;
+            history=new Stack<>();
 	}
         public Engine(Engine e){
             ar=new Arbitro(e.ar);
             turno=e.turno;
             mangiato=e.mangiato;
+            this.history=new Stack<>();
+            this.history.addAll(e.history);
 	}
         /*
 	public boolean isUserColorWhite(){
@@ -128,7 +132,8 @@ public class Engine {
 
                 						
                 if(ar.inseritaSource()&&ar.inseritaDestinazione()){
-                    
+                        this.history.push(new Tavola(t));
+                        
                         int r;
                         if(ar.controlMangiata(t)){
                             r=gestisciMangiata(t,this.ar);
@@ -137,7 +142,9 @@ public class Engine {
                                 if(avvenutaPromozione(ar,t))
                                         try {
                                             t.promuoviPedina(cellaPedinaPromossa(ar,t));
-                                } catch (CellaVuotaException ex) {System.out.println("non trovo pedina da promouvere"); }
+                                } catch (CellaVuotaException ex) {
+                                    System.out.println("non trovo pedina da promouvere"); 
+                                }
                                 //turno++
                                 ar.resettaMossa();
                                 r=1;
@@ -148,7 +155,8 @@ public class Engine {
                             JOptionPane.showMessageDialog(null, this.getTurnoToString()+"hai vinto"); 
                         
                         //if(ar.controlVictory(t))
-                         //gestione vittoria   
+                         //gestione vittoria  
+                       
                         return r;
                 }
                 return 9;		
@@ -628,54 +636,66 @@ public class Engine {
         }
         public Tavola calcolaMossa(Node root1){
             Node s=root1.getChildren().get(0);
-            int mp=10;
+            int mp=root1.foglieN().size();
             boolean b=false;
             int k2=0;
+            ArrayList <Node> mosseMigliori=new ArrayList<>();
             Node root=new Node(root1);
             
             while(mp>0){
-            int nMin=3000;
-            for(Node n:root.foglieN()){//trova la mossa piu vantaggiosa per l'altro giocatore
-                
-                if(nMin>n.getId())
-                    nMin=n.getId();
-            }
-            for(Node n:root.foglieN()){//fa in modo che il nero non prenda mosse che portano a quella mossa
-                if(n.getId()==nMin){
-                    n.getFatherN().setId(-3000);
-                    n.setId(3000);
+                int nMin=3000;
+                mosseMigliori.clear();
+                for(Node n:root.foglieN()){//trova la mossa piu vantaggiosa per l'altro giocatore
+                    if(nMin>n.getId())
+                        nMin=n.getId();
                 }
-            }
-            int k=0;
-            Node e=new Node(null,-3000);
-            b=false;
-            for(Node n:root.getChildren())
-                if(n.getId()==-3000){
-                    k++;
-                    for(Node h:n.getChildren())//in questo modo tutti i filgli della mossa piu svantaggiosa non saranno considerati
-                        h.setId(3000);
-                }
-                else
-                    if(n.getId()>e.getId()){
-                        k2++;
-                        e=n;//la mossa possibile e la meno peggio
-                        b=true;
+                int k=0;
+                for(Node n:root.foglieN()){//fa in modo che il nero non prenda mosse che portano a quella mossa
+                    if(n.getId()==nMin){
+                        mosseMigliori.add(new Node(n.getFatherN()));
+                        n.setId(3000);
+                        k++;
                     }
-            if(b)
-                s=e;
-            mp=root.getChildren().size()-k;
+                }
+                /*
+                int k=0;
+                Node e=new Node(null,-3000);
+                b=false;
+                for(Node n:root.getChildren())//devo fargli calcolare la mossa migliore anche l'ultimo giro
+                    if(n.getId()==-3000){
+                        k++;
+                        for(Node h:n.getChildren())//in questo modo tutti i filgli della mossa piu svantaggiosa non saranno considerati
+                            h.setId(3000);
+                    }
+                    else
+                        if(n.getId()>e.getId()){
+                            k2++;
+                            e=n;//la mossa possibile e la meno peggio
+                            b=true;
+                        }
+                if(b)
+                    s=e;
+                        */
+                mp-=k;
             
             
             }
-            if(k2==0){//se non cambia mai mossa vuol dire che tutte le mosse portano a una situazione ugulae per il bianco quindi facciola migliore per me
+            
+            
                 Node max=new Node(null,-3000);           
-                for(Node n:root1.getChildren())
+                for(Node n:mosseMigliori)
                     if(n.getId()>max.getId()){
                         max=n;
                         s=n;
                     }
-            }
+            
             return new GenericTavolaTree(s).getTavola();
+        }
+        public boolean historyIsEmpty(){
+            return this.history.empty();
+        }
+        public Tavola lastMove(){
+            return this.history.pop();
         }
 	}	
 				
