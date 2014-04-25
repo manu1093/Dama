@@ -143,17 +143,18 @@ public class GUI extends JFrame {
 
                     @Override
                     public void windowOpened(WindowEvent e) {
-                        int r=JOptionPane.showConfirmDialog(null,"continuare la partita precedente?","Dama",JOptionPane.YES_NO_OPTION);
-                        //0 si 1 no
-                        if(r==1)
-                            nuovaPartita.doClick();
-                        if(r==0)
-                            if(new File(System.getProperty("user.dir")+"/sss/ultimaPartita.txt").exists()){
-                                t.load(new File(System.getProperty("user.dir")+"/sss/ultimaPartita.txt"));
-                                aggiorna(t);
+                        if(new File(System.getProperty("user.dir")+"/sss/ultimaPartita.txt").exists()){
+                            int r=JOptionPane.showConfirmDialog(null,"continuare la partita precedente?","Dama",JOptionPane.YES_NO_OPTION);
+                            //0 si 1 no
+                            if(r==1)
+                                nuovaPartita.doClick();
+                            if(r==0)
+
+                                    t.load(new File(System.getProperty("user.dir")+"/sss/ultimaPartita.txt"));
+                                    aggiorna(t);
+
                             }else
                                 nuovaPartita.doClick();
-                            
                                 
                         
                     }
@@ -435,6 +436,7 @@ public class GUI extends JFrame {
                      if(arg.getSource()==undo){
                         
                           if(!user.historyIsEmpty()){
+                              t=user.lastMove();
                               t=user.lastMove();
                               
                                   aggiorna(t);

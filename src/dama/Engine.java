@@ -485,6 +485,7 @@ public class Engine {
                 return Engine.pedina;
         }
         public Tavola mossaPc(Tavola t){
+            this.history.push(t);
             Node root=new Node(t,0);
             this.creaAlberoDelleTavole(root, 2);
             Tavola m=this.calcolaMossa(root);
@@ -611,9 +612,9 @@ public class Engine {
                                 r-=3;
                         }else{
                             if(t.getPedina(c).isDamone())//conta se mangia pedine
-                                r+=60;
+                                r+=120;
                             else
-                                r+=20;
+                                r+=40;
                                 
                             
                         }
@@ -636,7 +637,8 @@ public class Engine {
         }
         public Tavola calcolaMossa(Node root1){
             Node s=root1.getChildren().get(0);
-            int mp=root1.foglieN().size();
+            //int mp=root1.foglieN().size();
+            int mp=root1.getChildren().size(); 
             boolean b=false;
             int k2=0;
             ArrayList <Node> mosseMigliori=new ArrayList<>();
@@ -655,6 +657,8 @@ public class Engine {
                         mosseMigliori.add(new Node(n.getFatherN()));
                         n.setId(3000);
                         k++;
+                        for(Node h:n.getFatherN().getChildren())
+                            h.setId(3000);
                     }
                 }
                 /*
@@ -717,6 +721,18 @@ public class Engine {
                     
                 }   
             return r;
+        }
+        public boolean controlPatta(){
+            for(int i=0;i<this.history.size();i++){
+                int k=0;
+                for(int j=0;j<this.history.size();j++)
+                    if(this.history.get(i).equals(this.history.get(j)))
+                        k++;
+                if(k>=3)
+                    return true;
+                
+            }
+            return false;
         }
 	}	
 				
