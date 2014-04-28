@@ -24,6 +24,7 @@ public class Engine {
         private static final int damone=30;
         private Stack <Tavola> history;
         private int d=0;
+        private ArrayList<Arbitro> pm;
         /*
         private int user;//mapperemo in modo diverso la gui
 	*/
@@ -32,13 +33,16 @@ public class Engine {
             turno=t;
             mangiato=false;
             history=new Stack<>();
+            pm=new ArrayList<>();
 	}
-        public Engine(Engine e){
+        public Engine(Engine e){//da sisitemare pm
             ar=new Arbitro(e.ar);
             turno=e.turno;
             mangiato=e.mangiato;
             this.history=new Stack<>();
             this.history.addAll(e.history);
+            pm=new ArrayList<>();
+            pm.addAll(e.pm);
 	}
         /*
 	public boolean isUserColorWhite(){
@@ -74,17 +78,34 @@ public class Engine {
                         if(!ar.controlSource(t)){
                                 ar.resettaMossa();
                                 JOptionPane.showMessageDialog(null,"casella sorgente non valida");
+                                
                         }else
                                 return 0;//seleziona la pedina col giallo
                 }
                 if(mangiato){//sono in una fase della magiata
                     ar.setDestination(ce);
-                    for(Arbitro c:this.mangiabiliP(t))
+                    /*
+                    for(Arbitro c:pm)
                         if(!c.getDestination().equals(ar.getDestination())){//deve essere una mangiata 
                                 JOptionPane.showMessageDialog(null,"obbligatorio proseguire con la mangiata");
                                 ar.resettaDestinazione();
-                                return 0;
+                                r=0;
                                 }
+                    */
+                    boolean b=false;
+                    for(Arbitro c:pm)//pedine con mangiata massima
+                                if(c!=null)
+                                    if(ar.getDestination().equals(c.getDestination())){
+                                        b=true;
+                                        
+                                     }
+                            if(pm.get(0)!=null&&!b){
+                                JOptionPane.showMessageDialog(null,"obbligatorio proseguire con la mangiata");									
+                                //t.setPedina(' ', this.mangiabili(t));//x soffiata
+                                ar.resettaMossa();
+                                return 0;
+                            }
+                    
                 }
                 if(ar.inseritaSource()&&!ar.inseritaDestinazione()){
                         //if(ar.controlVictory(t))
@@ -115,6 +136,10 @@ public class Engine {
                                 return 2;
                             }//mangiabilip se non ci sono da array con un elemento null
                             boolean b=false;
+                    
+                        if(t.getNPedine()==6)
+                            System.out.println("");
+                    
                             for(Arbitro c:this.mangiabiliP(t))//pedine con mangiata massima
                                 if(c!=null)
                                     if(ar.getSource().equals(c.getSource())&&ar.getDestination().equals(c.getDestination())){
@@ -283,6 +308,7 @@ public class Engine {
             }
             return r;
         }
+        
         public ArrayList<Node> Qualcosa(ArrayList<Node> p){//torna il padre del nodo più basso
             ArrayList a=new ArrayList<>();
             int min=3000;
@@ -300,6 +326,7 @@ public class Engine {
             }
             return a;
         }
+        
         public ArrayList<Node> QualcosaF(ArrayList<Node> p){//torna il nodo più basso che torvo
             ArrayList a=new ArrayList<>();
             int min=3000;
@@ -434,11 +461,15 @@ public class Engine {
             temp.setSource(ar.getDestination());
             Node root=new Node(temp,0);//deve essere 0;            
             this.creaAlberoMangiatePossibili(t, root);
-
+            
             
             if(!root.getChildren().isEmpty()){//la pedina può mangiare ancora
+                    pm.clear();
                     ar.setSource(ar.getDestination());
-                    ar.resettaDestinazione();							
+                    ar.resettaDestinazione();
+                    for(Node n:Qualcosa(this.trovaMangiataMassimaPerUnaPedina(t, root)))
+                        this.pm.add(new GenericArbitroTree(n).getArbitro());
+                    
                     mangiato=true;
                     return 0;
             }else{
@@ -655,11 +686,12 @@ public class Engine {
             Node s=root.getChildren().get(0);
             //int mp=root1.foglieN().size();
             int mp=root.getChildren().size();
-            ArrayList <Node> mosseMiglioritemp=new ArrayList<>();  
-             
+            
+            Stack <ArrayList<Node>> mosse=new Stack<>();
+                   
             while(mp>0){
                 int nMin=3000;
-                mosseMiglioritemp.clear();
+                ArrayList <Node> mosseMiglioritemp=new ArrayList<>();  
                 for(Node n:root.foglieN()){//trova il punteggio della mossa piu vantaggiosa per l'altro giocatore
                     if(nMin>n.getId())
                         nMin=n.getId();
@@ -674,20 +706,31 @@ public class Engine {
                             h.setId(3000);
                     }
                 }
-                
+                mosse.push(mosseMiglioritemp);
                 mp-=k; 
-            } 
+            }
+            while(!mosse.empty()){
+            ArrayList <Node> mosseMiglioritemp=mosse.pop();
             Node max=new Node(null,-3000);           
+            boolean b=false;
             for(Node n:mosseMiglioritemp)//cerco la mossa migliore per me tra le meno peggio
-                if(n.getId()>max.getId()&&!this.controlPatta(new GenericTavolaTree(n).getTavola())){
+                if(n.getId()>max.getId()&&!this.controlPattaBlocco(new GenericTavolaTree(n).getTavola())){
                     max=n;
                     s=n;
-                }
+                    b=true;
+                } 
+            
             for(Node n:root.getChildren())// cerca possibile mossa vincente
                 if(n.getChildren().isEmpty()){
-                    if(this.controlVictory(new GenericTavolaTree(n).getTavola()))
-                        s=n;                    
+                    if(this.controlVictory(new GenericTavolaTree(n).getTavola())){
+                        s=n; 
+                        b=true;
+                    }
                 }
+            if(b)
+                break;
+           
+            }
             return new GenericTavolaTree(s).getTavola();
         }
         public boolean historyIsEmpty(){
@@ -699,7 +742,12 @@ public class Engine {
         public ArrayList<Cell> getPossiblyMoves(Tavola t){//mosse possibili avendo la sorgente
             ArrayList <Cell> r=new ArrayList<>();
             try{
-                for(Arbitro a:this.mangiabiliP(t))
+                ArrayList <Arbitro> p;
+                if(mangiato)
+                    p=pm;
+                else
+                    p=this.mangiabiliP(t);
+                for(Arbitro a:p)
                     if(a.getSource().equals(ar.getSource()))
                           r.add(a.getDestination());
                 
@@ -715,7 +763,7 @@ public class Engine {
                 }   
             return r;
         }
-        public boolean controlPatta(Tavola t){//t è la mossa che va controllata     
+        public boolean controlPattaKV(Tavola t){//t è la mossa che va controllata     
             if(controlVictory(t)){
                 return false;
             }
@@ -731,7 +779,7 @@ public class Engine {
                     if(this.history.get(i).equals(this.history.get(j)))
                         k++;                    
                 }
-                if(k>=3)
+                if(k>=4)//+1 rispetto a quello che deve essere
                     return true;
                 
             }
@@ -741,6 +789,35 @@ public class Engine {
             this.creaAlberoDelleTavole(root, 1);
             this.nextTurn();
             return root.getChildren().isEmpty();
+        }
+        /*
+        public boolean controlPattaBloccoPerPredireMosse(Tavola t){//t è la mossa che va controllata     
+            if(controlVictory(t)){
+                return false;
+            }            
+            Node root=new Node(t,0);
+            this.creaAlberoDelleTavole(root, 1);
+            this.nextTurn();
+            Node root1=new Node(t,0);
+            this.creaAlberoDelleTavole(root1, 1);
+            this.nextTurn();
+            return root.getChildren().isEmpty()||root1.getChildren().isEmpty();
+        }
+        */
+        public boolean controlPattaBlocco(Tavola t){//t è la mossa che va controllata     
+            if(controlVictory(t)){
+                return false;
+            }            
+            
+            this.nextTurn();
+            Node root1=new Node(t,0);
+            this.creaAlberoDelleTavole(root1, 1);
+            this.nextTurn();
+            return root1.getChildren().isEmpty();
+        }
+        public boolean controlPatta(Tavola t){//t è la mossa che va controllata     
+            
+            return this.controlPattaKV(t)||this.controlPattaBlocco(t);
         }
 	}	
 				

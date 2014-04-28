@@ -318,7 +318,7 @@ public class GUI1 extends JFrame {
 							
 							int r=user.receivedinput(t, c);
                                                         if(user.controlPatta(t))
-                                                            System.out.println("partita finita");
+                                                            System.out.println("umano ha fatto patta");
                                                         if(r==2)
                                                             
                                                                 aggiorna(t);
@@ -338,7 +338,8 @@ public class GUI1 extends JFrame {
                                                                   aggiorna(t);
                                                                   
                                                                 t=pc.mossaPc(t);
-                                                                
+                                                                 if(user.controlPatta(t))
+                                                                    System.out.println("pc ha fatto patta");
                                                                 aggiorna(t);
                                                               }
                                                               
