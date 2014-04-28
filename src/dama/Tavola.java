@@ -47,7 +47,8 @@ public class Tavola implements Iterable<Cell>{//itera su celle piene + comodo
         
 	public void inizio(){
 		
-                
+                this.pedine.clear();
+                        
 		int y;
 		int f=0;
 		for (y=0;y<3;y++)//riempie le prime tre righe
@@ -117,13 +118,7 @@ public class Tavola implements Iterable<Cell>{//itera su celle piene + comodo
 	
 	*/
         
-	public Cell getCell(int x,int y) throws CellaInesistenteException{
-            
-            try{
-		return new Cell(x,y);
-            } catch (IndexOutOfBoundsException e){throw new CellaInesistenteException();}
-               
-	}
+	
         
 	/*
 	public void setPedina(char h,Pedina p){
@@ -158,21 +153,7 @@ public class Tavola implements Iterable<Cell>{//itera su celle piene + comodo
             
 	}
 	
-        public Cell middleCell(Cell c1,Cell c2){
-            try{
-            int mx;
-            if(c1.getX()<c2.getX())
-                mx=c1.getX()+1;
-            else
-                mx=c2.getX()+1;
-            int my;
-            if(c1.getY()<c2.getY())
-                my=c1.getY()+1;
-            else
-                my=c2.getY()+1;
-            return this.getCell(mx, my);
-            }catch(CellaInesistenteException e){ return null;}
-        }
+        
         @Override
 	public String toString(){
 		int y;
@@ -287,8 +268,10 @@ public class Tavola implements Iterable<Cell>{//itera su celle piene + comodo
         return this.pedine.keySet().iterator();
     }
     public void load(File f){
+        this.pedine.clear();
             try {
                 Scanner s=new Scanner(new FileReader(f));
+                s.nextLine();
                 while(s.hasNext()){
                     String r=s.nextLine();
                     int x=Integer.parseInt(r.split(":")[0]);
@@ -314,6 +297,7 @@ public class Tavola implements Iterable<Cell>{//itera su celle piene + comodo
             }
     }
     public void save(File f) {
+        
         PrintWriter pw=null;
         if(!f.exists())
             try {
@@ -323,9 +307,13 @@ public class Tavola implements Iterable<Cell>{//itera su celle piene + comodo
             
         }
                 
-            
-                try {
+         String r1="";
+         try {
+                Scanner s=new Scanner(f);
+                r1=s.nextLine();
+                s.close();
                 pw = new PrintWriter(f);
+                pw.println(r1);
             }catch(FileNotFoundException e){
                 System.out.println("boh");
             }
@@ -341,6 +329,28 @@ public class Tavola implements Iterable<Cell>{//itera su celle piene + comodo
                 System.out.println("problema salvataggio tavola");
             }
            
+    }
+    public int getNPedine(){
+       return  this.pedine.size();
+    }
+        @Override
+    public boolean equals(Object o){
+        if(o instanceof Tavola ){
+            Tavola t=(Tavola) o;
+            if(t.pedine.keySet().size()==this.pedine.keySet().size()){
+                for(Cell c:this)
+                    try {
+                        if(!this.getPedina(c).equals(t.getPedina(c)))
+                            return false;
+                    } catch (CellaVuotaException ex) {
+                       return false;
+                    }
+                return true;
+            }else
+                return false;
+            
+            }else
+                return false;
     }
 }
 

@@ -21,7 +21,7 @@ public class Cell {//implementa un modo per mettere il massimo variabile il mass
             this.x=x;
             this.y=y; 
 	}
-        
+       
         private char getColor(){
             if(y%2==0)
                 if((y*8+x)%2==0)
@@ -156,5 +156,19 @@ public class Cell {//implementa un modo per mettere il massimo variabile il mass
             return (x>0&&x<7&&y>0&&y<7);
                
         }
-        
+        public Cell middleCell(Cell c){
+            try{
+            int mx;
+            if(this.x<c.x)
+                mx=this.x+1;
+            else
+                mx=c.x+1;
+            int my;
+            if(this.y<c.y)
+                my=this.y+1;
+            else
+                my=c.y+1;
+            return new Cell(mx, my);
+            }catch(CellaInesistenteException e){ return null;}
+        }
 }

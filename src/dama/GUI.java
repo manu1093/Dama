@@ -10,6 +10,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -20,9 +21,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 
 import javax.swing.ImageIcon;
@@ -34,6 +37,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
 
@@ -42,7 +46,7 @@ import javax.swing.JRadioButton;
 
 public class GUI extends JFrame {
 	
-	
+	private boolean userIsBlack;
 	final private JMenuBar menuBar=new JMenuBar();
         final private JMenu gioco=new JMenu("Gioco");
         final  private JMenu about=new JMenu("About");
@@ -63,7 +67,8 @@ public class GUI extends JFrame {
         final private JRadioButton nero=new JRadioButton("Nero");   
         final private JButton ok=new JButton("ok");
         final private JButton ok2=new JButton("ok");
-        
+        int x;
+        int y;
 	private  ImageIcon cvn =new ImageIcon("cvn.jpg");
 	private ImageIcon pb=new ImageIcon("pb.jpg");
 	private ImageIcon pn =new ImageIcon("pn.jpg");
@@ -75,7 +80,7 @@ public class GUI extends JFrame {
 	private ImageIcon dsn =new ImageIcon("dsn.jpg");
 	private ImageIcon db =new ImageIcon("db.jpg");
 	 private ImageIcon cvs =new ImageIcon("cvs.jpg");
-	
+	GestoreEventi ge=new GestoreEventi();
 	
 	public GUI(String name){		
 		super(name);
@@ -91,7 +96,7 @@ public class GUI extends JFrame {
 				c.gridy=y;
 				
 				a[y][x]=new JLabel();
-				a[y][x].addMouseListener(new GestoreEventi());
+				a[y][x].addMouseListener(ge);
 				
 				this.add(a[y][x],c);
 				
@@ -148,10 +153,11 @@ public class GUI extends JFrame {
                             //0 si 1 no
                             if(r==1)
                                 nuovaPartita.doClick();
-                            if(r==0)
-
+                            if(r==0){
+                                    load(new File(System.getProperty("user.dir")+"/sss/ultimaPartita.txt"));
                                     t.load(new File(System.getProperty("user.dir")+"/sss/ultimaPartita.txt"));
-                                    aggiorna(t);
+                             }    
+                                aggiorna(t);
 
                             }else
                                 nuovaPartita.doClick();
@@ -162,11 +168,25 @@ public class GUI extends JFrame {
                     @Override
                     public void windowClosing(WindowEvent e) {
                         boolean b=false;
+                        boolean n=false;
                         for(Cell c:t){
-                            t.save(new File(System.getProperty("user.dir")+"/sss/ultimaPartita.txt"));
-                            break;
+                            try {
+                                if(t.getPedina(c).isBianca())
+                                    b=true;
+                            } catch (CellaVuotaException ex) { }
+                            try {
+                                if(t.getPedina(c).isNera())
+                                    n=true;
+                            } catch (CellaVuotaException ex) { }
+                            if(b&&n)
+                                break;
                         }
-                        
+                        if(b&&n){
+                            save(new File(System.getProperty("user.dir")+"/sss/ultimaPartita.txt"));
+                            t.save(new File(System.getProperty("user.dir")+"/sss/ultimaPartita.txt"));
+                        }
+                        else
+                            new File(System.getProperty("user.dir")+"/sss/ultimaPartita.txt").delete();
                         System.exit(0);
                     
                     }
@@ -190,10 +210,9 @@ public class GUI extends JFrame {
         });
 		}
                 private void setSizeF(int x,int y){
-                    this.setSize(x, y);                   
+                    this.x=x;
+                    this.y=y;
                 }
-                
-                
 		private void aggiorna(Tavola t) {
                     for(int y=0;y<8;y++){
                         for(int x=0;x<8;x++){
@@ -218,6 +237,7 @@ public class GUI extends JFrame {
                         }catch (CellaInesistenteException | CellaVuotaException e){}
                         }
                     }
+                    super.setSize(x, y);
 			
 		}
 		private void aggiornaSM(Cell c) {
@@ -240,8 +260,80 @@ public class GUI extends JFrame {
             } catch (CellaVuotaException ex) { } 
             
 			
-		}
-              
+            }
+            private void save(File f){
+                
+                    try (PrintWriter pw = new PrintWriter(f)) {
+                        if(this.userIsBlack){
+                            pw.println("N");
+                        }else
+                            pw.println("B");
+                    } catch (FileNotFoundException ex) {}
+                
+            }    
+            private void load(File f) {
+            try {
+                Scanner s=new Scanner(f);
+                String r=s.nextLine();                
+                if(r.contains("N"))
+                    utenteNero();
+                
+                if(r.contains("B"))
+                    utenteBianco();
+            } catch (FileNotFoundException ex) {}
+            
+            
+            }
+            private void utenteNero(){
+                    userIsBlack=true;
+                    ImageIcon temp;
+
+                    temp=pb;
+                    pb=pn;
+                    pn=temp;
+
+                    temp=db;
+                    db=dn;
+                    dn=temp;
+
+                    temp=psb;
+                    psb=psn;
+                    psn=temp;
+
+                    temp=dsb;
+                    dsb=dsn;
+                    dsn=temp;
+
+                    turno.setText("turno del nero");
+            }
+            private void utenteBianco(){
+                userIsBlack=false;
+                turno.setText("turno del bianco");
+            }
+            public void finePartita(String message){
+                this.inibisciMovimenti();
+                int r=JOptionPane.showConfirmDialog(null,"    "+message+"\n iniziare un'altra partita?", "Fine Partita", JOptionPane.YES_NO_OPTION);
+                if(r==0){
+                    nuovaPartita.doClick();
+                }
+                    
+                
+                
+                
+            }
+            private void inibisciMovimenti(){
+                for (JLabel[] a1 : a) 
+                    for (int j = 0; j<a[0].length; j++) 
+                        a1[j].removeMouseListener(ge);
+                            
+            }
+            private void attivaMovimenti(){
+                if(a[0][0].getMouseListeners().length==0)
+                    for (JLabel[] a1 : a) 
+                        for (int j = 0; j<a[0].length; j++) 
+                            a1[j].removeMouseListener(ge);
+                    
+            }
 		private class GestoreEventi implements MouseListener{
 			
 			
@@ -255,7 +347,7 @@ public class GUI extends JFrame {
 						if(arg0.getSource()==a[y][x]){
 								Cell c=null;
                                                     try {
-                                                        c = t.getCell(x, y);
+                                                        c = new Cell(x, y);
                                                     } catch (CellaInesistenteException ex) {                                               
                                                     }   
                                                         
@@ -274,6 +366,12 @@ public class GUI extends JFrame {
                                                            
 							}
                                                         
+                                                        if(user.controlPatta(t)){
+                                                            finePartita("patta");                                                            
+                                                        }
+                                                         if(user.controlVictory(t)){
+                                                            finePartita("hai vinto");
+                                                         }   
 							
                                               
                                                                
@@ -281,8 +379,14 @@ public class GUI extends JFrame {
                                                                   aggiorna(t);
                                                                   
                                                                 t=pc.mossaPc(t);
-                                                                
                                                                 aggiorna(t);
+                                                                if(pc.controlPatta(t)){
+                                                                    finePartita("patta");                                                            
+                                                                }
+                                                                if(pc.controlVictory(t)){
+                                                                    finePartita("hai perso");
+                                                                 } 
+                                                                
                                                               }
                                                               
                                                   
@@ -328,37 +432,18 @@ public class GUI extends JFrame {
 
         @Override
         public void mouseClicked(MouseEvent arg) {
-           if(arg.getSource()==ok){
+           if(arg.getSource()==ok){               
                t.inizio();
                                     if(nero.isSelected()){
-                                        ImageIcon temp;
-                                        
-                                        temp=pb;
-                                        pb=pn;
-                                        pn=temp;
-                                        
-                                        temp=db;
-                                        db=dn;
-                                        dn=temp;
-                                        
-                                        temp=psb;
-                                        psb=psn;
-                                        psn=temp;
-                                        
-                                        temp=dsb;
-                                        dsb=dsn;
-                                        dsn=temp;
-                                        
-                                        turno.setText("turno del nero");
+                                        utenteNero();
                                         
                                         t=pc.mossaPc(t);
                                         
                                                                                
                                     }
-                                    if (bianco.isSelected())
-                                        
-                                        turno.setText("turno del bianco");
-                                    
+                                    if (bianco.isSelected()){
+                                        utenteBianco();
+                                    }
                                     in.dispose();
                
                    aggiorna(t);
@@ -402,34 +487,61 @@ public class GUI extends JFrame {
                     @Override
                     public void actionPerformed(ActionEvent arg) {
                        if(arg.getSource()==nuovaPartita){
+                        attivaMovimenti();
                         in.setSize(300,100);
                         in.setVisible(true);
                         
 
                      }
                      if(arg.getSource()==opzioni){
-                         JFrame f=new JFrame("Opzioni");
+                         final JFrame f=new JFrame("Opzioni");
                          f.setLayout(new FlowLayout());
-                         f.add(new JLabel("Risoluzione"));
+                         JPanel ris=new JPanel(new GridLayout(4,1));
+                         ris.setSize(100, 200);                        
+                         ris.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("Risoluzione"),BorderFactory.createEmptyBorder(5,5,5,5)));
+                         f.add(ris);
                          JRadioButton r3=new JRadioButton("400x300");
                          JRadioButton r5=new JRadioButton("600x500");
                          JRadioButton r6=new JRadioButton("700x600");
                          JRadioButton r10=new JRadioButton("800x700");
                          ButtonGroup r=new ButtonGroup();
+                         r3.setSelected(true);
                          r.add(r3);r.add(r5);r.add(r6);r.add(r10);
-                         f.add(r3);f.add(r5);f.add(r6);f.add(r10);
+                         ris.add(r3);ris.add(r5);ris.add(r6);ris.add(r10);
                          r3.setActionCommand("");
                          r5.setActionCommand("50");
                          r6.setActionCommand("60");
                          r10.setActionCommand("80");
-                         r3.addActionListener(new GestoreEventiOpzioni());
-                         r5.addActionListener(new GestoreEventiOpzioni());
-                         r6.addActionListener(new GestoreEventiOpzioni());
-                         r10.addActionListener(new GestoreEventiOpzioni());
+                         GestoreEventiOpzioni g=new GestoreEventiOpzioni();
+                         r3.addActionListener(g);
+                         r5.addActionListener(g);
+                         r6.addActionListener(g);
+                         r10.addActionListener(g);
+                         JPanel mang=new JPanel(new GridLayout(2,1));
+                         mang.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("Opzioni mangiata"),BorderFactory.createEmptyBorder(5,5,5,5)));
+                         f.add(mang);
+                         JRadioButton pp=new JRadioButton("La pedina mangia il damone");
+                         JRadioButton p=new JRadioButton("La pedina non mangia il damone");
+                         pp.setSelected(true);
+                         ButtonGroup mang1=new ButtonGroup();
+                         mang1.add(p);mang1.add(p);                         
+                         mang.add(p);mang.add(pp);
+                         p.addActionListener(g);
+                         pp.addActionListener(g);
+                         p.setActionCommand("d");
+                         pp.setActionCommand("n");
+                         JButton ok=new JButton("ok");
+                         ok.setActionCommand("ok");
+                         ok.addActionListener(new ActionListener(){
+                             @Override
+                             public void actionPerformed(ActionEvent e) {
+                                 f.setVisible(false);
+                                 aggiorna(t);
+                             }
                          
-                        
-                         
-                         f.setSize(100,200);
+                     });
+                         f.add(ok);
+                         f.setSize(350,250);
                          f.setResizable(false);
                          f.setVisible(true);
                      }
@@ -447,10 +559,10 @@ public class GUI extends JFrame {
                         JFileChooser fc=new JFileChooser();                
                 fc.setCurrentDirectory(new File(System.getProperty("user.dir")+"/salvataggi/"));
                 int ret=fc.showOpenDialog(carica);
-                if(ret==JFileChooser.APPROVE_OPTION)
-                    
+                if(ret==JFileChooser.APPROVE_OPTION){
+                        load(fc.getSelectedFile());
                         t.load(fc.getSelectedFile());
-                        
+                }
                             
                        
                          aggiorna(t);
@@ -462,10 +574,10 @@ public class GUI extends JFrame {
                         JFileChooser fc=new JFileChooser();                
                 fc.setCurrentDirectory(new File(System.getProperty("user.dir")+"/salvataggi/"));
                 int ret=fc.showOpenDialog(salva);
-                if(ret==JFileChooser.APPROVE_OPTION)
-                    
+                if(ret==JFileChooser.APPROVE_OPTION){
+                        save(fc.getSelectedFile());
                         t.save(fc.getSelectedFile());
-                        
+                }    
                    
                     
                     }
@@ -473,28 +585,41 @@ public class GUI extends JFrame {
                     
                 }
                 private class GestoreEventiOpzioni implements ActionListener{
-
+                    
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                       String c=e.getActionCommand();
+                        boolean f=true;
+                        String c=e.getActionCommand();
                        
-                        cvn=new ImageIcon("cvn"+c+".jpg");
-                        pb=new ImageIcon("pb"+c+".jpg");
-                        pn=new ImageIcon("pn"+c+".jpg");
-                        psb=new ImageIcon("psb"+c+".jpg");
-                        psn=new ImageIcon("psn"+c+".jpg");
-                        cvb=new ImageIcon("cvb"+c+".jpg");
-                        dn=new ImageIcon("dn"+c+".jpg");
-                        dsn=new ImageIcon("dsn"+c+".jpg");
-                        dn=new ImageIcon("dn"+c+".jpg");
-                        cvs=new ImageIcon("cvs"+c+".jpg");
-                        int n;
-                        if(!c.equals(""))
-                            n=Integer.parseInt(c);
-                        else
-                            n=40;
-                        setSizeF(n*10,n*10);
-                        aggiorna(t);
+                       if(c.equals("n")){
+                           user.getArbitro().pedinaNonMangiaDamone();
+                           pc.getArbitro().pedinaNonMangiaDamone();
+                           f=false;
+                       }
+                       if(c.equals("d")){
+                           user.getArbitro().pedinaMangiaDamone();
+                           pc.getArbitro().pedinaMangiaDamone();
+                           f=false;
+                       }
+                       if(f){
+                            cvn=new ImageIcon("cvn"+c+".jpg");
+                            pb=new ImageIcon("pb"+c+".jpg");
+                            pn=new ImageIcon("pn"+c+".jpg");
+                            psb=new ImageIcon("psb"+c+".jpg");
+                            psn=new ImageIcon("psn"+c+".jpg");
+                            cvb=new ImageIcon("cvb"+c+".jpg");
+                            dn=new ImageIcon("dn"+c+".jpg");
+                            dsn=new ImageIcon("dsn"+c+".jpg");
+                            dn=new ImageIcon("dn"+c+".jpg");
+                            cvs=new ImageIcon("cvs"+c+".jpg");
+                            int n;
+                            if(!c.equals(""))
+                                n=Integer.parseInt(c);
+                            else
+                                n=40;
+                            setSizeF(n*10,n*10);
+                       }
+                        
                         
                     }
                     

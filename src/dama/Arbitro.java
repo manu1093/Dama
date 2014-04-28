@@ -14,7 +14,7 @@ import java.util.logging.Logger;
  * @author Manu
  */
 
-public class Arbitro {
+public final class Arbitro {
 	//private int moveSource []=new int [2];
 	//private int moveDestination []= new int[2];
 	private Cell moveSource;
@@ -22,7 +22,7 @@ public class Arbitro {
 	public static final int turnoBianco=0;
         public static final int turnoNero=1;
 	private int turn;
-        
+        private boolean pedinaMangiaDamone=true; 
 	public Arbitro(int turn){//da mettere l'eccezione in caso
 		this.resettaMossa();
                 this.turn=turn;
@@ -216,13 +216,18 @@ public Cell mangiata(Tavola t) {//true se la mossa Ã¨ una mangiata e si puÃ²
 		//posso provare a mangiare
     
     Cell b=null; 
+            try {
+                if(t.containsDamone(this.moveSource.middleCell(this.moveDestination))&&!this.pedinaMangiaDamone)
+                    if(!t.containsDamone(this.moveSource))
+                        return null;
+            } catch (CellaVuotaException ex) { }
     try{    
         if(t.isEmpty(moveDestination)){
             if(this.turnoBianco()&&t.containsPezzoBianco(this.moveSource)&&!t.containsDamone(moveSource)){
                 
                     for(Cell c:this.moveSource.celleVicineAlte()){
-                        if(this.moveDestination.equals(c)&&!isMyPedina(t.getPedina(t.middleCell(moveSource,moveDestination))))
-                            return t.middleCell(moveSource, moveDestination);
+                        if(this.moveDestination.equals(c)&&!isMyPedina(t.getPedina(moveSource.middleCell(moveDestination))))
+                            return moveSource.middleCell(moveDestination);
                     }
                 }
             }
@@ -234,8 +239,8 @@ public Cell mangiata(Tavola t) {//true se la mossa Ã¨ una mangiata e si puÃ²
 
             if((t.isEmpty(this.moveDestination))){
                 for(Cell c:this.moveSource.celleVicineBasse()){
-                    if(this.moveDestination.equals(c)&&!isMyPedina(t.getPedina(t.middleCell(moveSource,moveDestination))))
-                        return t.middleCell(moveSource, moveDestination);
+                    if(this.moveDestination.equals(c)&&!isMyPedina(t.getPedina(moveSource.middleCell(moveDestination))))
+                        return moveSource.middleCell(moveDestination);
                 }
             }
         }
@@ -245,25 +250,29 @@ public Cell mangiata(Tavola t) {//true se la mossa Ã¨ una mangiata e si puÃ²
 	if(t.containsDamone(this.moveSource))
             if(t.isEmpty(this.moveDestination))
                 for(Cell c:this.moveSource.celleVicine())            
-                    if(this.moveDestination.equals(c)&&!isMyPedina(t.getPedina(t.middleCell(moveSource,moveDestination))))
-                        return t.middleCell(moveSource, moveDestination);
+                    if(this.moveDestination.equals(c)&&!isMyPedina(t.getPedina(moveSource.middleCell(moveDestination))))
+                        return moveSource.middleCell(moveDestination);
     }catch(  CellaVuotaException|   NullPointerException | IllegalArgumentException e){b=null;} 
-        return b;
+    
+    return b;
 		
 
 
 		
 	}
 public Cell mangiante(Tavola t){//true se la mossa Ã¨ una mangiata e si puÃ² fare
-		
-		//posso provare a mangiare
+	 try {
+                if(t.containsDamone(this.moveSource.middleCell(this.moveDestination))&&!this.pedinaMangiaDamone)
+                    if(!t.containsDamone(this.moveSource))
+                        return null;
+            } catch (CellaVuotaException ex) { }
         Cell b=null; 
     try{    
         if(t.isEmpty(moveDestination)){
             if(this.turnoBianco()&&t.containsPezzoBianco(this.moveSource)&&!t.containsDamone(moveSource)){
                 
                     for(Cell c:this.moveSource.celleVicineAlte()){
-                        if(this.moveDestination.equals(c)&&!isMyPedina(t.getPedina(t.middleCell(moveSource,moveDestination))))
+                        if(this.moveDestination.equals(c)&&!isMyPedina(t.getPedina(moveSource.middleCell(moveDestination))))
                             return moveSource;
                     }
                 }
@@ -276,7 +285,7 @@ public Cell mangiante(Tavola t){//true se la mossa Ã¨ una mangiata e si puÃ²
 
             if((t.isEmpty(this.moveDestination))){
                 for(Cell c:this.moveSource.celleVicineBasse()){
-                    if(this.moveDestination.equals(c)&&!isMyPedina(t.getPedina(t.middleCell(moveSource,moveDestination))))
+                    if(this.moveDestination.equals(c)&&!isMyPedina(t.getPedina(moveSource.middleCell(moveDestination))))
                         return moveSource;
                 }
             }
@@ -287,7 +296,7 @@ public Cell mangiante(Tavola t){//true se la mossa Ã¨ una mangiata e si puÃ²
 	if(t.containsDamone(this.moveSource))
             if(t.isEmpty(this.moveDestination))
                 for(Cell c:this.moveSource.celleVicine())            
-                    if(this.moveDestination.equals(c)&&!isMyPedina(t.getPedina(t.middleCell(moveSource,moveDestination))))
+                    if(this.moveDestination.equals(c)&&!isMyPedina(t.getPedina(moveSource.middleCell(moveDestination))))
                         return moveSource;
     }catch(  CellaVuotaException|   NullPointerException | IllegalArgumentException e){b=null;} 
         return b;
@@ -353,9 +362,7 @@ public Cell mangiante(Tavola t){//true se la mossa Ã¨ una mangiata e si puÃ²
                 return (this.turnoBianco()&&p.isBianca())||(this.turnoNero()&&p.isNera());
             }else throw new IllegalArgumentException();
         }
-        public void nextTurn(){
-            turn++;
-        }
+       
         @Override
         public boolean equals(Object o){
             if(o instanceof Arbitro){
@@ -364,5 +371,11 @@ public Cell mangiante(Tavola t){//true se la mossa Ã¨ una mangiata e si puÃ²
             }
              else
                 return false;
+        }
+        public void pedinaMangiaDamone(){
+            this.pedinaMangiaDamone=true;
+        }
+        public void pedinaNonMangiaDamone(){
+            this.pedinaMangiaDamone=false;
         }
 }

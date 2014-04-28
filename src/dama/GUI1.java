@@ -112,7 +112,7 @@ public class GUI1 extends JFrame {
 			this.add(l,c);
 			
 			this.aggiorna(t);
-			this.setSize(700,600);
+			this.setSize(400,450);
 			this.setVisible(true);
                         JFrame f=new JFrame("comandi");
                         GridLayout gr=new GridLayout(3,4);
@@ -143,7 +143,7 @@ public class GUI1 extends JFrame {
                         load.addMouseListener(new GestoreEventi2());
                         save.addMouseListener(new GestoreEventi2());
                         undo.addMouseListener(new GestoreEventi2());
-                        f.setSize(400,200);
+                        f.setSize(300,200);
                         f.setVisible(true);
 		}
 
@@ -216,12 +216,7 @@ public class GUI1 extends JFrame {
 			
 			@Override
 			synchronized public void mouseClicked(MouseEvent arg0) {
-                                if(arg0.getSource()==pturno){
-                                    
-                                    
-                                        aggiorna(t);
-                                  
-                                }
+                                
 				if(ins&&!rim){//preparazione
                                     label2.setText("modalità inserimento");
                                     if(arg0.getSource()==ok){
@@ -289,7 +284,7 @@ public class GUI1 extends JFrame {
                                             if(arg0.getSource()==a[y][x]){
                                                 Cell c=null;
                                                     try {
-                                                        c = t.getCell(x, y);
+                                                        c = new Cell(x, y);
                                                         t.removePezzo(c);
                                                     } catch (CellaInesistenteException ex) {                                               
                                                     } 
@@ -314,7 +309,7 @@ public class GUI1 extends JFrame {
 						if(arg0.getSource()==a[y][x]){
 							Cell c=null;
                                                     try {
-                                                        c = t.getCell(x, y);
+                                                        c = new Cell(x, y);
                                                     } catch (CellaInesistenteException ex) {                                               
                                                     }   
                                                         
@@ -322,7 +317,8 @@ public class GUI1 extends JFrame {
 							
 							
 							int r=user.receivedinput(t, c);
-                                                        
+                                                        if(user.controlPatta(t))
+                                                            System.out.println("partita finita");
                                                         if(r==2)
                                                             
                                                                 aggiorna(t);

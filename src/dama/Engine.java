@@ -23,6 +23,7 @@ public class Engine {
         private static final int pedina=10;
         private static final int damone=30;
         private Stack <Tavola> history;
+        private int d=0;
         /*
         private int user;//mapperemo in modo diverso la gui
 	*/
@@ -151,8 +152,8 @@ public class Engine {
                         }
     //                    if(ar.controlStallo(t)&&!ar.controlVictory(t))
                       //      JOptionPane.showMessageDialog(null, "patta");
-                        if(this.controlVictory(t))
-                            JOptionPane.showMessageDialog(null, "hai vinto"); 
+                        
+                        
                         
                         //if(ar.controlVictory(t))
                          //gestione vittoria  
@@ -258,7 +259,7 @@ public class Engine {
                 
                     if(n.getId()==max){
                         try {
-                        if(t.getPedina(t.middleCell(g.getArbitro().getSource(), g.getArbitro().getDestination())).isDamone()){
+                        if(t.getPedina(g.getArbitro().getSource().middleCell( g.getArbitro().getDestination())).isDamone()){
                             v++;//conto i nodi con punteggio massimo
                             r.add(n);//salvo i nodi con punteggio massimo
                             pu=false;
@@ -363,7 +364,7 @@ public class Engine {
 		return b;
 	}
 
-	public GenericArbitroTree creaAlberoMangiatePossibili(Tavola t,Node root) {//per ora torna una pedina qualsiasi ache può mangiare            
+	private GenericArbitroTree creaAlberoMangiatePossibili(Tavola t,Node root) {//per ora torna una pedina qualsiasi ache può mangiare            
 		GenericArbitroTree g=new GenericArbitroTree(root);
                 Cell d=g.getArbitro().getDestination();                 //se ci sono mette nell'arbitro l'ultima mangiata
                 Arbitro temp=new Arbitro(g.getArbitro());
@@ -372,7 +373,7 @@ public class Engine {
                     
                     temp.setDestination(c);
                     if(temp.controlMangiata(t)){
-                        Node child=null;
+                        
                         int v=0;
                          try {
                             if(t.getPedina(temp.mangiata(t)).isDamone())
@@ -380,7 +381,7 @@ public class Engine {
                             else
                          v=Engine.pedina;
                             } catch (CellaVuotaException ex) { }
-                         child=new Node(new Arbitro(temp),v);
+                         Node child=new Node(new Arbitro(temp),v);
                         try{
                         root.addFiglio(child);
                         }catch(NullPointerException e){System.out.println("problema");}
@@ -485,13 +486,25 @@ public class Engine {
                 return Engine.pedina;
         }
         public Tavola mossaPc(Tavola t){
+            try {
+                if(t.getPedina(new Cell(4,6))!=null)
+                    System.out.println("");
+            } catch (CellaInesistenteException | CellaVuotaException ex) {} 
+
             this.history.push(t);
             Node root=new Node(t,0);
             this.creaAlberoDelleTavole(root, 2);
             Tavola m=this.calcolaMossa(root);
+            if(controlPatta(m)){
+                System.out.println("");
+                for(Node n:root.getChildren())
+                    if(n.getId()==-3000)
+                        System.out.println("");
+            }
             turno=1;
-            if(this.controlVictory(m))
-                JOptionPane.showMessageDialog(null,"il pc ha vinto");
+           
+            
+            
             return m;
             
         }
@@ -576,7 +589,7 @@ public class Engine {
             int r=0;
             for(Cell c:t){
                 try {
-                    if(this.turnoNero())
+                    if(this.turnoNero()){
                         if(this.isMyPedina(t.getPedina(c))){
                             if(c.centro())
                                 r+=5;
@@ -595,6 +608,9 @@ public class Engine {
                                 
                             
                         }
+                        if(controlPatta(t))
+                            r=-3000;
+                    }
 
                     } catch (CellaVuotaException ex) {
 
@@ -625,7 +641,7 @@ public class Engine {
             }
             return r;
         }
-        public boolean controlVictory(Tavola t){
+        public boolean controlVictory(Tavola t){//controlla se this ha vinto
            
             for(Cell s:t)
                 try{
@@ -635,66 +651,43 @@ public class Engine {
                
             return true;
         }
-        public Tavola calcolaMossa(Node root1){
-            Node s=root1.getChildren().get(0);
+        public Tavola calcolaMossa(Node root){
+            Node s=root.getChildren().get(0);
             //int mp=root1.foglieN().size();
-            int mp=root1.getChildren().size(); 
-            boolean b=false;
-            int k2=0;
-            ArrayList <Node> mosseMigliori=new ArrayList<>();
-            Node root=new Node(root1);
-            
+            int mp=root.getChildren().size();
+            ArrayList <Node> mosseMiglioritemp=new ArrayList<>();  
+             
             while(mp>0){
                 int nMin=3000;
-                mosseMigliori.clear();
-                for(Node n:root.foglieN()){//trova la mossa piu vantaggiosa per l'altro giocatore
+                mosseMiglioritemp.clear();
+                for(Node n:root.foglieN()){//trova il punteggio della mossa piu vantaggiosa per l'altro giocatore
                     if(nMin>n.getId())
                         nMin=n.getId();
                 }
                 int k=0;
-                for(Node n:root.foglieN()){//fa in modo che il nero non prenda mosse che portano a quella mossa
+                for(Node n:root.foglieN()){
                     if(n.getId()==nMin){
-                        mosseMigliori.add(new Node(n.getFatherN()));
-                        n.setId(3000);
+                        mosseMiglioritemp.add(new Node(n.getFatherN()));//me le segno in caso siano le meno peggio
+                        n.setId(3000);//tolgo le mosse con tale punteggio
                         k++;
-                        for(Node h:n.getFatherN().getChildren())
+                        for(Node h:n.getFatherN().getChildren())//non considero più le mosse peggiori
                             h.setId(3000);
                     }
                 }
-                /*
-                int k=0;
-                Node e=new Node(null,-3000);
-                b=false;
-                for(Node n:root.getChildren())//devo fargli calcolare la mossa migliore anche l'ultimo giro
-                    if(n.getId()==-3000){
-                        k++;
-                        for(Node h:n.getChildren())//in questo modo tutti i filgli della mossa piu svantaggiosa non saranno considerati
-                            h.setId(3000);
-                    }
-                    else
-                        if(n.getId()>e.getId()){
-                            k2++;
-                            e=n;//la mossa possibile e la meno peggio
-                            b=true;
-                        }
-                if(b)
-                    s=e;
-                        */
-                mp-=k;
-            
-            
-            }
-            
-            
+                
+                mp-=k; 
+            } 
             Node max=new Node(null,-3000);           
-            for(Node n:mosseMigliori)
-                if(n.getId()>max.getId()){
+            for(Node n:mosseMiglioritemp)//cerco la mossa migliore per me tra le meno peggio
+                if(n.getId()>max.getId()&&!this.controlPatta(new GenericTavolaTree(n).getTavola())){
                     max=n;
                     s=n;
                 }
-            for(Node n:root1.getChildren())// cerca possibile mossa vincente
-                if(n.getChildren().isEmpty())
-                    s=n;
+            for(Node n:root.getChildren())// cerca possibile mossa vincente
+                if(n.getChildren().isEmpty()){
+                    if(this.controlVictory(new GenericTavolaTree(n).getTavola()))
+                        s=n;                    
+                }
             return new GenericTavolaTree(s).getTavola();
         }
         public boolean historyIsEmpty(){
@@ -722,17 +715,32 @@ public class Engine {
                 }   
             return r;
         }
-        public boolean controlPatta(){
-            for(int i=0;i<this.history.size();i++){
-                int k=0;
-                for(int j=0;j<this.history.size();j++)
+        public boolean controlPatta(Tavola t){//t è la mossa che va controllata     
+            if(controlVictory(t)){
+                return false;
+            }
+            this.history.push(t);
+            int  np=this.history.peek().getNPedine();
+            for(int i=this.history.size()-1;i>=0;i--){
+                if(this.history.get(i).getNPedine()>np)
+                        break;
+                int k=0;                
+                for(int j=this.history.size()-1;j>=0;j--){
+                    if(this.history.get(j).getNPedine()>np)
+                        break;
                     if(this.history.get(i).equals(this.history.get(j)))
-                        k++;
+                        k++;                    
+                }
                 if(k>=3)
                     return true;
                 
             }
-            return false;
+            this.history.pop();
+            Node root=new Node(t,0);
+            this.nextTurn();
+            this.creaAlberoDelleTavole(root, 1);
+            this.nextTurn();
+            return root.getChildren().isEmpty();
         }
 	}	
 				

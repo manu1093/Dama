@@ -36,8 +36,14 @@ public class Pedina {
             return this instanceof Damone;
 		
 	}
-        public boolean equals(Pedina p){            
-            return p.color==this.color&&p.isDamone()==this.isDamone();
+        @Override
+        public boolean equals(Object o){   
+            if( o instanceof Pedina){
+                Pedina p=(Pedina) o;
+                return p.color==this.color&&p.isDamone()==this.isDamone();
+            }
+            else 
+                return false;
         }
       
 }
