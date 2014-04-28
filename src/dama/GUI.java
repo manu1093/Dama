@@ -526,6 +526,15 @@ public class GUI extends JFrame {
                          ButtonGroup mang1=new ButtonGroup();
                          mang1.add(p);mang1.add(p);                         
                          mang.add(p);mang.add(pp);
+                         JPanel patta=new JPanel(new GridLayout(2,1));
+                         patta.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("Opzioni patta"),BorderFactory.createEmptyBorder(5,5,5,5)));
+                         JRadioButton ap=new JRadioButton("attiva patta per mosse");
+                         JRadioButton dp=new JRadioButton("disattiva patta per mosse");
+                         ap.setSelected(true);
+                         ButtonGroup gPatta=new ButtonGroup();
+                         gPatta.add(ap);gPatta.add(dp);
+                         patta.add(dp);patta.add(ap);
+                         f.add(patta);
                          p.addActionListener(g);
                          pp.addActionListener(g);
                          p.setActionCommand("d");
@@ -540,6 +549,7 @@ public class GUI extends JFrame {
                              }
                          
                      });
+                         
                          f.add(ok);
                          f.setSize(350,250);
                          f.setResizable(false);
@@ -549,7 +559,7 @@ public class GUI extends JFrame {
                         
                           if(!user.historyIsEmpty()){
                               t=user.lastMove();
-                              t=user.lastMove();
+                             
                               
                                   aggiorna(t);
                               
